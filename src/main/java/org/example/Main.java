@@ -1,11 +1,41 @@
 package org.example;
 
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
 import spark.Request;
+import spark.utils.SparkUtils;
+
+import javax.servlet.ServletContextEvent;
+import java.util.List;
 
 import static spark.Spark.*;
 
+// damit sagen wir spring, wo er nach "Bohnen" suchen soll
+@Configuration // alle configurations werden vom "Komponenten scanner" angeschaut
+@ComponentScan({"org.example"}) // hier stellen wir den scanner ein
 public class Main {
     public static void main(String[] args) {
+
+        // starte spring framework
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(Main.class);
+
+        // hol mir die DbTest bohne
+        DbTest dbTest = context.getBean(DbTest.class);
+
+        setupSparkServer(dbTest);
+        // hol mir 'T odo' entries aus der datenbank
+        List<String> todos = dbTest.getTodos();
+
+        for (String todo : todos) {
+            System.out.println(todo);
+        }
+
+        // beende spring sauber, wenn anwendung beendet wird
+        context.registerShutdownHook();
+    }
+
+    private static void setupSparkServer(DbTest dbTest) {
         port(8080);
         get("/", (request, response) -> {
             String user = "User";
@@ -22,6 +52,19 @@ public class Main {
         });
         get("/test", (request, response) -> {
             return "<u>das</u> ist <b>ein</b><br> <a href='/'>test</a>";
+        });
+
+        get("/todos", (request, response) -> {
+            String html = "<ul>";
+
+            List<String> todos = dbTest.getTodos();
+            for (String todo : todos) {
+                html += "<li>" + todo + "</li>";
+            }
+
+            html += "</ul>";
+
+            return html;
         });
 
         get("/login", (request, response) -> {
@@ -59,3 +102,5 @@ public class Main {
     }
 
 }
+
+
