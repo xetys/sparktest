@@ -30,6 +30,4 @@ wrapper {
     gradleVersion = "4.8.1"
 }
 
-//application {
-//    mainClassName = 'org.example.Main'
-//}
+mainClassName = 'org.example.Main'
